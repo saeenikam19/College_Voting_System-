@@ -16,4 +16,6 @@ COPY . .
 EXPOSE 8000
 
 # Use eventlet worker for Socket.IO support
-CMD ["gunicorn", "-k", "eventlet", "-w", "1", "--bind", "0.0.0.0:$PORT", "app:app"]
+CMD sh -c "gunicorn -k eventlet -w 1 --bind 0.0.0.0:${PORT} app:app"
+
+
