@@ -16,32 +16,7 @@ from flask_limiter.util import get_remote_address
 from flask_socketio import SocketIO
 from itsdangerous import URLSafeTimedSerializer
 
-app = Flask(__name__)
-app.secret_key = "secret123"
-
-with app.app_context():
-    init_db()
-
-# Enable debug logging
-app.logger.setLevel('DEBUG')
-
-# Session & security settings (adjust for prod)
-app.config.update(
-    SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SECURE=False,  # set True in production with HTTPS
-    SESSION_COOKIE_SAMESITE='Lax',
-    PERMANENT_SESSION_LIFETIME=timedelta(minutes=30),
-)
-
-# Initialize helpers
-csrf = CSRFProtect(app)
-limiter = Limiter(app=app, key_func=get_remote_address, default_limits=["200 per day", "50 per hour"])
-socketio = SocketIO(app, async_mode='threading')
-serializer = URLSafeTimedSerializer(app.secret_key)
-
 DATABASE = "database.db"
-
-
 def init_db():
     db = sqlite3.connect(DATABASE)
     cur = db.cursor()
@@ -117,6 +92,35 @@ def init_db():
 
     db.commit()
     db.close()
+
+
+
+app = Flask(__name__)
+app.secret_key = "secret123"
+
+with app.app_context():
+    init_db()
+
+# Enable debug logging
+app.logger.setLevel('DEBUG')
+
+# Session & security settings (adjust for prod)
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SECURE=False,  # set True in production with HTTPS
+    SESSION_COOKIE_SAMESITE='Lax',
+    PERMANENT_SESSION_LIFETIME=timedelta(minutes=30),
+)
+
+# Initialize helpers
+csrf = CSRFProtect(app)
+limiter = Limiter(app=app, key_func=get_remote_address, default_limits=["200 per day", "50 per hour"])
+socketio = SocketIO(app, async_mode='threading')
+serializer = URLSafeTimedSerializer(app.secret_key)
+
+
+
+
 
 @app.context_processor
 def inject_csrf():
