@@ -6,6 +6,7 @@ import time
 import json
 import csv
 import io
+import os
 
 # Security and realtime extensions
 from flask_wtf import CSRFProtect
@@ -17,6 +18,10 @@ from itsdangerous import URLSafeTimedSerializer
 
 app = Flask(__name__)
 app.secret_key = "secret123"
+
+with app.app_context():
+    init_db()
+
 # Enable debug logging
 app.logger.setLevel('DEBUG')
 
@@ -35,6 +40,83 @@ socketio = SocketIO(app, async_mode='threading')
 serializer = URLSafeTimedSerializer(app.secret_key)
 
 DATABASE = "database.db"
+
+
+def init_db():
+    db = sqlite3.connect(DATABASE)
+    cur = db.cursor()
+
+    # USERS
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL,
+        voted INTEGER DEFAULT 0
+    )
+    """)
+
+    # CANDIDATES
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS candidates (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT UNIQUE NOT NULL
+    )
+    """)
+
+    # VOTES
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS votes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        voter_id INTEGER,
+        candidate_id INTEGER,
+        timestamp TEXT
+    )
+    """)
+
+    # FEEDBACK
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS feedback (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        rating INTEGER,
+        comments TEXT,
+        timestamp TEXT
+    )
+    """)
+
+    # AUDIT
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS audit (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        action TEXT,
+        user TEXT,
+        details TEXT,
+        timestamp TEXT
+    )
+    """)
+
+    # 🔐 AUTO-CREATE ADMIN (ONCE)
+    admin_user = os.getenv("ADMIN_USERNAME")
+    admin_pass = os.getenv("ADMIN_PASSWORD")
+
+    if admin_user and admin_pass:
+        cur.execute("SELECT id FROM users WHERE role='admin'")
+        admin_exists = cur.fetchone()
+
+        if not admin_exists:
+            cur.execute("""
+            INSERT INTO users (username, password, role)
+            VALUES (?, ?, 'admin')
+            """, (
+                admin_user,
+                generate_password_hash(admin_pass)
+            ))
+            print("✅ Admin account created")
+
+    db.commit()
+    db.close()
 
 @app.context_processor
 def inject_csrf():
