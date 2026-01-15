@@ -35,69 +35,6 @@ socketio = SocketIO(app, async_mode='threading')
 serializer = URLSafeTimedSerializer(app.secret_key)
 
 DATABASE = "database.db"
-def init_db():
-    db = sqlite3.connect(DATABASE)
-    cur = db.cursor()
-
-    # USERS
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        role TEXT NOT NULL,
-        voted INTEGER DEFAULT 0
-    )
-    """)
-
-    # CANDIDATES
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS candidates (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT UNIQUE NOT NULL
-    )
-    """)
-
-    # VOTES
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS votes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        voter_id INTEGER,
-        candidate_id INTEGER,
-        timestamp TEXT,
-        FOREIGN KEY(voter_id) REFERENCES users(id),
-        FOREIGN KEY(candidate_id) REFERENCES candidates(id)
-    )
-    """)
-
-    # FEEDBACK
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS feedback (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
-        rating INTEGER,
-        comments TEXT,
-        timestamp TEXT,
-        FOREIGN KEY(user_id) REFERENCES users(id)
-    )
-    """)
-
-    # AUDIT LOG
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS audit (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        action TEXT,
-        user TEXT,
-        details TEXT,
-        timestamp TEXT
-    )
-    """)
-
-    db.commit()
-    db.close()
-    
-init_db()
-
 
 @app.context_processor
 def inject_csrf():
