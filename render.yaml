@@ -6,13 +6,9 @@ services:
     plan: free
     dockerfilePath: Dockerfile
     buildCommand: ""
-    startCommand: "gunicorn -k eventlet -w 1 --bind 0.0.0.0:$PORT app:app"
     envVars:
       - key: SECRET_KEY
         value: "CHANGE_ME"
-        sync: false
-      - key: DATABASE_URL
-        value: "sqlite:///data/database.db"
         sync: false
       - key: DB_DIR
         value: "/app/data"
