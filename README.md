@@ -2,7 +2,6 @@
 
 A simple college voting application built with Flask. This fork includes realtime admin updates (Socket.IO), improved UI (Bootstrap), authentication improvements, and security hardening (CSRF, rate-limiting). This README explains how to set up, run, and manage the database safely.
 
----
 
 ## 🚀 Quick Start
 
